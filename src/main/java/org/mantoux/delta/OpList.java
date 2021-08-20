@@ -1,15 +1,16 @@
 package org.mantoux.delta;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static java.util.stream.Collectors.toList;
 
-@JsonInclude(value = NON_EMPTY)
 public class OpList extends ArrayList<Op> {
 
   public OpList(List<Op> ops) {
@@ -18,6 +19,36 @@ public class OpList extends ArrayList<Op> {
 
   public OpList() {
     super();
+  }
+
+  public OpList(JsonObject ops){
+    super();
+    fromJson(ops);
+  }
+
+  public OpList(String json){
+    super();
+    Gson gson = new Gson();
+    JsonObject opsObject = gson.fromJson(json, JsonObject.class);
+    fromJson(opsObject);
+  }
+
+  private void fromJson(JsonObject ops){
+    JsonArray opsArray = ops.get("ops").getAsJsonArray();
+    for (int i = 0; i < opsArray.size(); i++) {
+      add(Op.fromJson(opsArray.get(i).getAsJsonObject()));
+    }
+  }
+
+  public String toJson(){
+    Gson gson = new Gson();
+    JsonObject result = new JsonObject();
+    JsonArray opsArray = new JsonArray();
+    result.add("ops", opsArray);
+    for (int i = 0; i < this.size(); i++) {
+      opsArray.add(this.get(i).toJson());
+    }
+    return gson.toJson(result);
   }
 
   public void insertFirst(Op element) {

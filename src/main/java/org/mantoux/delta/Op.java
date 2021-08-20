@@ -1,50 +1,60 @@
 package org.mantoux.delta;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.gson.JsonObject;
 
 import java.util.Objects;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static org.mantoux.delta.Op.Type.DELETE;
 import static org.mantoux.delta.Op.Type.RETAIN;
 
-@JsonInclude(value = NON_EMPTY)
 public class Op {
+
+  public static Op fromJson(JsonObject op){
+    if (op.has("insert")){
+      if (op.has("attributes")){
+        AttributeMap attributeMap = new AttributeMap();
+        JsonObject jsonAttributes = op.get("attributes").getAsJsonObject();
+        jsonAttributes.entrySet().forEach((entry) -> attributeMap.put(entry.getKey(), entry.getValue()));
+        return Op.insert(op.get("insert").getAsString(), attributeMap);
+      }else{
+        return Op.insert(op.get("insert").getAsString());
+      }
+    }else if (op.has("delete")){
+      return Op.delete(op.get("delete").getAsInt());
+    }else if (op.has("retain")){
+      if (op.has("attributes")){
+        AttributeMap attributeMap = new AttributeMap();
+        JsonObject jsonAttributes = op.get("attributes").getAsJsonObject();
+        jsonAttributes.entrySet().forEach((entry) -> attributeMap.put(entry.getKey(), entry.getValue().toString()));
+        return Op.retain(op.get("retain").getAsInt(), attributeMap);
+      }else{
+        return Op.retain(op.get("retain").getAsInt());
+      }
+    }
+    return null;
+  }
 
   // 0 length white space
   static final String EMBED = String.valueOf((char) 0x200b);
 
-  @JsonProperty()
   private String  insert;
-  @JsonProperty()
   private Integer delete;
-  @JsonProperty()
   private Integer retain;
 
-  @JsonProperty()
   private AttributeMap attributes;
 
-  @JsonIgnore
   public boolean isDelete() {
     return type().equals(DELETE);
   }
 
-  @JsonIgnore
   public boolean isInsert() {
     return type().equals(Type.INSERT);
   }
 
-  @JsonIgnore
   public boolean isTextInsert() {
     return isInsert() && !EMBED.equals(insert);
   }
 
-  @JsonIgnore
   public boolean isRetain() {
     return type().equals(RETAIN);
   }
@@ -153,15 +163,28 @@ public class Op {
       op.retain) && Objects.equals(attributes, op.attributes);
   }
 
-  @Override
-  public String toString() {
-    ObjectMapper mapper = new ObjectMapper();
-    ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-    try {
-      return writer.writeValueAsString(this);
-    } catch (JsonProcessingException e) {
-      return "Error while generating json:\n" + e.getMessage();
+  public JsonObject toJson() {
+    JsonObject opObj = new JsonObject();
+    if (this.isDelete()){
+      opObj.addProperty("delete", this.length());
+    }else if (this.isRetain()){
+      opObj.addProperty("retain", this.length());
+      if (this.hasAttributes()){
+        JsonObject attributesObj = new JsonObject();
+        AttributeMap attributeMap = this.attributes();
+        attributeMap.forEach((key, val) -> attributesObj.addProperty(key, val.toString()));
+        opObj.add("attributes", attributesObj);
+      }
+    }else if (this.isInsert()){
+      opObj.addProperty("insert", this.arg());
+      if (this.hasAttributes()){
+        JsonObject attributesObj = new JsonObject();
+        AttributeMap attributeMap = this.attributes();
+        attributeMap.forEach((key, val) -> attributesObj.addProperty(key, val.toString()));
+        opObj.add("attributes", attributesObj);
+      }
     }
+    return opObj;
   }
 
   public enum Type {
