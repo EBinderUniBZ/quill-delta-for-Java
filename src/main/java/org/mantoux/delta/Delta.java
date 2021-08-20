@@ -1,10 +1,8 @@
 package org.mantoux.delta;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,19 +12,23 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static org.mantoux.delta.Op.Type.DELETE;
 import static org.mantoux.delta.Op.Type.INSERT;
 
-@JsonInclude(value = NON_EMPTY)
 public class Delta {
-  @JsonProperty("ops")
   final OpList ops;
 
   public Delta(OpList ops) {
     if (ops == null)
       throw new IllegalArgumentException("Ops cannot be null, use Delta() for empty ops");
     this.ops = ops;
+  }
+
+  public Delta(String json){
+    Gson gson = new Gson();
+    JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+    JsonArray opsArray = jsonObject.get("ops").getAsJsonArray();
+    this.ops = new OpList(opsArray);
   }
 
   public Delta() {
@@ -331,14 +333,11 @@ public class Delta {
     return Objects.equals(ops, delta.ops);
   }
 
-  @Override
-  public String toString() {
-    ObjectMapper mapper = new ObjectMapper();
-    ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-    try {
-      return writer.writeValueAsString(this);
-    } catch (JsonProcessingException e) {
-      return "Error while generating json:\n" + e.getMessage();
-    }
+  public String toJson(){
+    Gson gson = new Gson();
+    JsonObject result = new JsonObject();
+    JsonArray opsArray = ops.toJson();
+    result.add("ops", opsArray);
+    return gson.toJson(result);
   }
 }

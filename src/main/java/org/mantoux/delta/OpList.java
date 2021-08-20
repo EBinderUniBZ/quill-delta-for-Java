@@ -21,34 +21,19 @@ public class OpList extends ArrayList<Op> {
     super();
   }
 
-  public OpList(JsonObject ops){
+  public OpList(JsonArray opsArray){
     super();
-    fromJson(ops);
-  }
-
-  public OpList(String json){
-    super();
-    Gson gson = new Gson();
-    JsonObject opsObject = gson.fromJson(json, JsonObject.class);
-    fromJson(opsObject);
-  }
-
-  private void fromJson(JsonObject ops){
-    JsonArray opsArray = ops.get("ops").getAsJsonArray();
     for (int i = 0; i < opsArray.size(); i++) {
       add(Op.fromJson(opsArray.get(i).getAsJsonObject()));
     }
   }
 
-  public String toJson(){
-    Gson gson = new Gson();
-    JsonObject result = new JsonObject();
+  public JsonArray toJson(){
     JsonArray opsArray = new JsonArray();
-    result.add("ops", opsArray);
     for (int i = 0; i < this.size(); i++) {
       opsArray.add(this.get(i).toJson());
     }
-    return gson.toJson(result);
+    return opsArray;
   }
 
   public void insertFirst(Op element) {
