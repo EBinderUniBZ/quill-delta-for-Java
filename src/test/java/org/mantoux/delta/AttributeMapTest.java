@@ -1,5 +1,7 @@
 package org.mantoux.delta;
 
+import com.google.gson.JsonNull;
+import com.google.gson.JsonPrimitive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +15,7 @@ class AttributeMapTest {
   @Nested
   public class Compose {
 
-    AttributeMap attributes = AttributeMap.of("bold", true, "color", "red");
+    AttributeMap attributes = AttributeMap.of("bold", new JsonPrimitive(true), "color", new JsonPrimitive("red"));
 
     @Test
     public void leftIsNull() {
@@ -32,31 +34,31 @@ class AttributeMapTest {
 
     @Test
     public void missingElement() {
-      Assertions.assertEquals(AttributeMap.of("bold", true, "italic", true, "color", "red"),
-                              AttributeMap.compose(attributes, AttributeMap.of("italic", true)));
+      Assertions.assertEquals(AttributeMap.of("bold", new JsonPrimitive(true), "italic", new JsonPrimitive(true), "color", new JsonPrimitive("red")),
+                              AttributeMap.compose(attributes, AttributeMap.of("italic", new JsonPrimitive(true))));
     }
 
     @Test
     public void overrideElement() {
-      Assertions.assertEquals(AttributeMap.of("bold", true, "color", "blue"),
-                              AttributeMap.compose(attributes, AttributeMap.of("color", "blue")));
+      Assertions.assertEquals(AttributeMap.of("bold", new JsonPrimitive(true), "color", new JsonPrimitive("blue")),
+                              AttributeMap.compose(attributes, AttributeMap.of("color", new JsonPrimitive("blue"))));
     }
 
     @Test
     public void removeElement() {
-      Assertions.assertEquals(AttributeMap.of("color", "red"),
-                              AttributeMap.compose(attributes, AttributeMap.of("bold", null)));
+      Assertions.assertEquals(AttributeMap.of("color", new JsonPrimitive("red")),
+                              AttributeMap.compose(attributes, AttributeMap.of("bold", JsonNull.INSTANCE)));
     }
 
     @Test
     public void removeAll() {
-      assertNull(AttributeMap.compose(attributes, AttributeMap.of("bold", null, "color", null)));
+      assertNull(AttributeMap.compose(attributes, AttributeMap.of("bold", JsonNull.INSTANCE, "color", JsonNull.INSTANCE)));
     }
 
     @Test
     public void removeMissing() {
       Assertions.assertEquals(attributes,
-                              AttributeMap.compose(attributes, AttributeMap.of("italic", null)));
+                              AttributeMap.compose(attributes, AttributeMap.of("italic", JsonNull.INSTANCE)));
     }
   }
 
@@ -66,14 +68,14 @@ class AttributeMapTest {
 
     @Test
     public void onNull() {
-      AttributeMap base = AttributeMap.of("bold", true);
+      AttributeMap base = AttributeMap.of("bold", new JsonPrimitive(true));
       Assertions.assertEquals(new AttributeMap(), AttributeMap.invert(null, base));
     }
 
     @Test
     public void baseNull() {
-      AttributeMap attributes = AttributeMap.of("bold", true);
-      AttributeMap expected = AttributeMap.of("bold", null);
+      AttributeMap attributes = AttributeMap.of("bold", new JsonPrimitive(true));
+      AttributeMap expected = AttributeMap.of("bold", JsonNull.INSTANCE);
       Assertions.assertEquals(expected, AttributeMap.invert(attributes, null));
     }
 
@@ -84,39 +86,39 @@ class AttributeMapTest {
 
     @Test
     public void merge() {
-      AttributeMap attributes = AttributeMap.of("bold", true);
-      AttributeMap base = AttributeMap.of("italic", true);
-      Assertions.assertEquals(AttributeMap.of("bold", null), AttributeMap.invert(attributes, base));
+      AttributeMap attributes = AttributeMap.of("bold", new JsonPrimitive(true));
+      AttributeMap base = AttributeMap.of("italic", new JsonPrimitive(true));
+      Assertions.assertEquals(AttributeMap.of("bold", JsonNull.INSTANCE), AttributeMap.invert(attributes, base));
     }
 
     @Test
     public void revertUnset() {
-      AttributeMap attributes = AttributeMap.of("bold", null);
-      AttributeMap base = AttributeMap.of("bold", true);
-      Assertions.assertEquals(AttributeMap.of("bold", true), AttributeMap.invert(attributes, base));
+      AttributeMap attributes = AttributeMap.of("bold", JsonNull.INSTANCE);
+      AttributeMap base = AttributeMap.of("bold", new JsonPrimitive(true));
+      Assertions.assertEquals(AttributeMap.of("bold", new JsonPrimitive(true)), AttributeMap.invert(attributes, base));
     }
 
     @Test
     public void replace() {
-      AttributeMap attributes = AttributeMap.of("color", "red");
-      AttributeMap base = AttributeMap.of("color", "blue");
+      AttributeMap attributes = AttributeMap.of("color", new JsonPrimitive("red"));
+      AttributeMap base = AttributeMap.of("color", new JsonPrimitive("blue"));
       Assertions.assertEquals(base, AttributeMap.invert(attributes, base));
     }
 
     @Test
     public void noop() {
-      AttributeMap attributes = AttributeMap.of("color", "red");
-      AttributeMap base = AttributeMap.of("color", "red");
+      AttributeMap attributes = AttributeMap.of("color", new JsonPrimitive("red"));
+      AttributeMap base = AttributeMap.of("color", new JsonPrimitive("red"));
       Assertions.assertEquals(new AttributeMap(), AttributeMap.invert(attributes, base));
     }
 
     @Test
     public void combined() {
       AttributeMap attributes =
-        AttributeMap.of("bold", true, "italic", null, "color", "red", "size", "12px");
+        AttributeMap.of("bold", new JsonPrimitive(true), "italic", JsonNull.INSTANCE, "color", new JsonPrimitive("red"), "size", new JsonPrimitive("12px"));
       AttributeMap base =
-        AttributeMap.of("font", "serif", "italic", true, "color", "blue", "size", "12px");
-      AttributeMap expected = AttributeMap.of("bold", null, "italic", true, "color", "blue");
+        AttributeMap.of("font", new JsonPrimitive("serif"), "italic", new JsonPrimitive(true), "color", new JsonPrimitive("blue"), "size", new JsonPrimitive("12px"));
+      AttributeMap expected = AttributeMap.of("bold", JsonNull.INSTANCE, "italic", new JsonPrimitive(true), "color", new JsonPrimitive("blue"));
       Assertions.assertEquals(expected, AttributeMap.invert(attributes, base));
     }
   }
@@ -124,8 +126,8 @@ class AttributeMapTest {
 
   @Nested
   public class Transform {
-    AttributeMap left  = AttributeMap.of("bold", true, "color", "red", "font", null);
-    AttributeMap right = AttributeMap.of("color", "blue", "font", "serif", "italic", true);
+    AttributeMap left  = AttributeMap.of("bold", new JsonPrimitive(true), "color", new JsonPrimitive("red"), "font", JsonNull.INSTANCE);
+    AttributeMap right = AttributeMap.of("color", new JsonPrimitive("blue"), "font", new JsonPrimitive("serif"), "italic", new JsonPrimitive(true));
 
     @Test
     public void leftNull() {
@@ -144,7 +146,7 @@ class AttributeMapTest {
 
     @Test
     public void withPriority() {
-      Assertions.assertEquals(AttributeMap.of("italic", true),
+      Assertions.assertEquals(AttributeMap.of("italic", new JsonPrimitive(true)),
                               AttributeMap.transform(left, right, true));
     }
 
@@ -157,7 +159,7 @@ class AttributeMapTest {
 
   @Nested
   public class Diff {
-    AttributeMap format = AttributeMap.of("bold", true, "color", "red");
+    AttributeMap format = AttributeMap.of("bold", new JsonPrimitive(true), "color", new JsonPrimitive("red"));
 
     @Test
     public void leftNull() {
@@ -166,7 +168,7 @@ class AttributeMapTest {
 
     @Test
     public void rightNull() {
-      Assertions.assertEquals(AttributeMap.of("bold", null, "color", null),
+      Assertions.assertEquals(AttributeMap.of("bold", JsonNull.INSTANCE, "color", JsonNull.INSTANCE),
                               AttributeMap.diff(format, null));
     }
 
@@ -177,20 +179,20 @@ class AttributeMapTest {
 
     @Test
     public void addFormat() {
-      AttributeMap added = AttributeMap.of("bold", true, "italic", true, "color", "red");
-      Assertions.assertEquals(AttributeMap.of("italic", true), AttributeMap.diff(format, added));
+      AttributeMap added = AttributeMap.of("bold", new JsonPrimitive(true), "italic", new JsonPrimitive(true), "color", new JsonPrimitive("red"));
+      Assertions.assertEquals(AttributeMap.of("italic", new JsonPrimitive(true)), AttributeMap.diff(format, added));
     }
 
     @Test
     public void removeFormat() {
-      AttributeMap removed = AttributeMap.of("bold", true);
-      Assertions.assertEquals(AttributeMap.of("color", null), AttributeMap.diff(format, removed));
+      AttributeMap removed = AttributeMap.of("bold", new JsonPrimitive(true));
+      Assertions.assertEquals(AttributeMap.of("color", JsonNull.INSTANCE), AttributeMap.diff(format, removed));
     }
 
     @Test
     public void overrideFormat() {
-      AttributeMap override = AttributeMap.of("bold", true, "color", "blue");
-      Assertions.assertEquals(AttributeMap.of("color", "blue"),
+      AttributeMap override = AttributeMap.of("bold", new JsonPrimitive(true), "color", new JsonPrimitive("blue"));
+      Assertions.assertEquals(AttributeMap.of("color", new JsonPrimitive("blue")),
                               AttributeMap.diff(format, override));
     }
   }

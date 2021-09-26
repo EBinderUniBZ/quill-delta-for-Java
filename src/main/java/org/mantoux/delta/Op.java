@@ -25,7 +25,7 @@ public class Op {
       if (op.has("attributes")){
         AttributeMap attributeMap = new AttributeMap();
         JsonObject jsonAttributes = op.get("attributes").getAsJsonObject();
-        jsonAttributes.entrySet().forEach((entry) -> attributeMap.put(entry.getKey(), entry.getValue().toString()));
+        jsonAttributes.entrySet().forEach((entry) -> attributeMap.put(entry.getKey(), entry.getValue()));
         return Op.retain(op.get("retain").getAsInt(), attributeMap);
       }else{
         return Op.retain(op.get("retain").getAsInt());
@@ -172,7 +172,7 @@ public class Op {
       if (this.hasAttributes()){
         JsonObject attributesObj = new JsonObject();
         AttributeMap attributeMap = this.attributes();
-        attributeMap.forEach((key, val) -> attributesObj.addProperty(key, val.toString()));
+        attributeMap.forEach((key, val) -> attributesObj.add(key, val));
         opObj.add("attributes", attributesObj);
       }
     }else if (this.isInsert()){
@@ -180,7 +180,7 @@ public class Op {
       if (this.hasAttributes()){
         JsonObject attributesObj = new JsonObject();
         AttributeMap attributeMap = this.attributes();
-        attributeMap.forEach((key, val) -> attributesObj.addProperty(key, val.toString()));
+        attributeMap.forEach((key, val) -> attributesObj.add(key, val));
         opObj.add("attributes", attributesObj);
       }
     }

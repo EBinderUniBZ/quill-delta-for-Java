@@ -1,8 +1,10 @@
 package org.mantoux.delta;
 
+import com.google.gson.JsonElement;
+
 import java.util.*;
 
-public class AttributeMap extends HashMap<String, Object> {
+public class AttributeMap extends HashMap<String, JsonElement> {
 
   public AttributeMap(AttributeMap b) {
     super(b);
@@ -12,30 +14,30 @@ public class AttributeMap extends HashMap<String, Object> {
     super();
   }
 
-  public AttributeMap(Map<String, Object> input) {
+  public AttributeMap(Map<String, JsonElement> input) {
     super(input);
   }
 
-  public static AttributeMap of(String key, Object value) {
-    Map<String, Object> temp = new HashMap<>();
+  public static AttributeMap of(String key, JsonElement value) {
+    Map<String, JsonElement> temp = new HashMap<>();
     temp.put(key, value);
     return new AttributeMap(temp);
   }
 
-  public static AttributeMap of(String key0, Object value0, String key1, Object value1) {
-    Map<String, Object> temp = new HashMap<>();
+  public static AttributeMap of(String key0, JsonElement value0, String key1, JsonElement value1) {
+    Map<String, JsonElement> temp = new HashMap<>();
     temp.put(key0, value0);
     temp.put(key1, value1);
     return new AttributeMap(temp);
   }
 
   public static AttributeMap of(String key0,
-                                Object value0,
+                                JsonElement value0,
                                 String key1,
-                                Object value1,
+                                JsonElement value1,
                                 String key2,
-                                Object value2) {
-    Map<String, Object> temp = new HashMap<>();
+                                JsonElement value2) {
+    Map<String, JsonElement> temp = new HashMap<>();
     temp.put(key0, value0);
     temp.put(key1, value1);
     temp.put(key2, value2);
@@ -43,14 +45,14 @@ public class AttributeMap extends HashMap<String, Object> {
   }
 
   public static AttributeMap of(String key0,
-                                Object value0,
+                                JsonElement value0,
                                 String key1,
-                                Object value1,
+                                JsonElement value1,
                                 String key2,
-                                Object value2,
+                                JsonElement value2,
                                 String key3,
-                                Object value3) {
-    Map<String, Object> temp = new HashMap<>();
+                                JsonElement value3) {
+    Map<String, JsonElement> temp = new HashMap<>();
     temp.put(key0, value0);
     temp.put(key1, value1);
     temp.put(key2, value2);
